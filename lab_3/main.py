@@ -43,39 +43,25 @@ def combine_images(image1, image2):
     combined_image = cv2.hconcat([image1, res_image2])
     return combined_image
 
-def save_image(image, output) -> None:
+def save_image(image) -> None:
     """
     Сохраняет изображение в файл.
     :param image: Изображение как массив NumPy
     :param output: Путь, куда нужно сохранить изображение
     """
-    os.chdir(output)
-    print(os.listdir(output))
     cv2.imwrite('combined_img.png', image)
 
-def hist(img:np.ndarray)->tuple:
-    """
-    Создает гистограммы изображения c помощью библиотеки OpenCV
-    :param img: изображение для анализа
-    :return: Гистограммы трех цветов
-    """
-    b = cv2.calcHist([img], [0], None, [256], [0, 256])
-    g = cv2.calcHist([img], [1], None, [256], [0, 256])
-    r = cv2.calcHist([img], [2], None, [256], [0, 256])
-    return b,g,r
-
-def hist_show(b:np.ndarray, g:np.ndarray, r:np.ndarray)->None:
+def hist_show(image:np.ndarray)->None:
     """
     Отображает гистограммы для трех цветов с помощью библиотеки matplotlib
-    :param b: Синяя гистограмма
-    :param g: Зеленая гистограмма
-    :param r: Красная гистограмма
+    :param image: Image как массив NumPy
     """
+    color = ('b', 'g', 'r')
     plt.figure(figsize=(10, 5))
-    plt.plot(b, label='Синяя линия', color='blue')
-    plt.plot(g, label='Зеленая линия', color='green')
-    plt.plot(r, label='Красная линия', color='red')
-    plt.xlim([0, 256])
+    for i, col in enumerate(color):
+        hist = cv2.calcHist([image], [i], None, [256], [0, 256])
+        plt.plot(hist, color=col)
+        plt.xlim([0, 256])
     plt.title('Гистограмма цвета изображения')
     plt.xlabel('Интенсивность цвета')
     plt.ylabel('Частота')
@@ -87,12 +73,10 @@ def main():
     """
        :param image_path1: Путь к 1 файлу изображения
        :param image_path2: Путь ко 2 файлу изображения
-       :param output_path: Путь для сохранения изображения
        """
     parser = argparse.ArgumentParser(description='Обработка изображения.')
     parser.add_argument('image_path1', type=str, help='Путь к 1 файлу изображения')
     parser.add_argument('image_path2', type=str, help='Путь ко 2 файлу изображения')
-    parser.add_argument('output_path', type=str, help='Путь для сохранения изображения')
 
     args = parser.parse_args()
 
@@ -110,8 +94,7 @@ def main():
         print(f"Size of Image 2: {get_image_size(image2)}")
 
         # Строим гистограмму
-        b,g,r=hist(image1)
-        hist_show(b,g,r)
+        hist_show(image1)
 
         # Объединение изображений
         combined_image = combine_images(image1, image2)
@@ -122,7 +105,7 @@ def main():
         display_image(combined_image, title='Combined image')
 
         # Сохраняем изображение
-        save_image(combined_image, args.output_path)
+        save_image(combined_image)
 
     except Exception as e:
         print(f"Error: {e}")
